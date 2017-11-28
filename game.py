@@ -2,18 +2,21 @@
 
 import pygame
 from pygame import *
+from time import sleep
 
 WIN_WIDTH = 256*3
 WIN_HEIGHT = 224*3
 HALF_WIDTH = int(WIN_WIDTH / 2)
 HALF_HEIGHT = int(WIN_HEIGHT / 2)
 
-currLevel = 0
+#currLevel = 1
 moveNext = False
+movePrev = False
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT)
 DEPTH = 32
 FLAGS = 0
-
+newX = 0
+newY = 0
 pygame.init()
 screen = pygame.display.set_mode(DISPLAY, FLAGS, DEPTH)
 pygame.display.set_caption("Use arrows to move!")
@@ -44,9 +47,8 @@ character = pygame.transform.scale(character, (16*4,32*3))
 knightjump1 = character
 
 def main():
-   
 	timer = pygame.time.Clock()
-
+	currLevel = 3
 	up = down = left = right = running = False
 	platforms = []
 	#bg = Background('bg1.png', 0, 0)
@@ -61,8 +63,9 @@ def main():
 	entities = pygame.sprite.Group()
    
 	x = y = 0
-	level = nextLevel()
+	level = getLevel(currLevel)
 
+	
 	# build the level
 	for row in level:
 		for col in row:
@@ -74,6 +77,10 @@ def main():
 				e = ExitBlock(x, y)
 				platforms.append(e)
 				entities.add(e)
+			if col == "B":
+				B = PreviousBlock(x, y)
+				platforms.append(B)
+				entities.add(B)
 			x += 16*3
 		y += 16*3
 		x = 0
@@ -81,7 +88,7 @@ def main():
 	total_level_width  = len(level[0])*16*3
 	total_level_height = len(level)*16*3
 	camera = Camera(complex_camera, total_level_width, total_level_height)
-	player = Player(60, total_level_height - 32)
+	player = Player(newX, newY)
 	entities.add(player)
 
 	while 1:
@@ -118,12 +125,20 @@ def main():
 		player.update(up, down, left, right, running, platforms)     
 		
 		#if reached portal, reset variables and draw next map
-		if (moveNext == True):
-			player = Player(16*3, 16*3)
+		if (moveNext == True or movePrev == True):
 			x=0
 			y=0
+			if moveNext:
+				currLevel = currLevel + 1
+				print (currLevel)
+			if movePrev:
+				currLevel = currLevel - 1			
+				print (currLevel)
+			#print ("currLevel")
+			#print (currLevel)
+			
 			platforms=[]
-			level = nextLevel()
+			level = getLevel(currLevel)
 			entities = pygame.sprite.Group()
 		
 			for row in level:
@@ -136,19 +151,23 @@ def main():
 						e = ExitBlock(x, y)
 						platforms.append(e)
 						entities.add(e)
+					if col == "B":
+						B = PreviousBlock(x, y)
+						platforms.append(B)
+						entities.add(B)
 					x += 16*3
 				y += 16*3
 				x = 0
-			entities.add(player)
+
 			total_level_width  = len(level[0])*16*3
 			total_level_height = len(level)*16*3
 			camera = Camera(complex_camera, total_level_width, total_level_height)
-			
+			player = Player(newX, newY)
+			entities.add(player)
+			sleep(.5)
 		for e in entities:
 			screen.blit(e.image, camera.apply(e))
-
 		pygame.display.update()
-
 class Camera(object):
 	def __init__(self, camera_func, width, height):
 		self.camera_func = camera_func
@@ -176,74 +195,136 @@ def complex_camera(camera, target_rect):
 	t = min(0, t)                           # stop scrolling at the top
 	return Rect(l, t, w, h)
 
-def nextLevel():
-	x = 0
-	y = 0
-	level = []
-	global currLevel
-	if currLevel == 0:
-		level = [
-		"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
-		"P                                          P",
-		"P                                          e",
-		"P                                          e",
-		"P                        PPPPPPPPP      PPPP",
-		"P                  PP                      P",
-		"P                PP                        P",
-		"P                                          P",
-		"P    PPPPPPPP                              P",
-		"P            PP                            P",
-		"P                          PPPPPPP         P",
-		"P                 PPPPPP                   P",
-		"P                                          P",
-		"P         PPPPPPP                          P",
-		"P       PP                                 P",
-		"P                     PPPPPP               P",
-		"P                                          P",
-		"P   PPPPPPPPPPP                            P",
-		"P                                          P",
-		"P                 PPPPPPPPPPP              P",
-		"P                            PP            P",
-		"P                              PP          P",
-		"P                                          P",
-		"P                                          P",
-		"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
-	elif currLevel == 1:
-		level = [
-				"PPPPPPPPPPPPPPPPPPPPPPPP",
-				"                       P",
-				"                       P",
-				"PPP                    P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",           
-				"P                      P",
-				"PPPPPPPPPPPPPPPPPPPPPPPP"]
-	elif currLevel == 1:
-		level = [
-				"PPPPPPPPPPPPPPPPPPPPPPPP",
-				"                       P",
-				"                       P",
-				"PPP                    P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",
-				"P                      P",           
-				"P                      P",
-				"PPPPPPPPPPPPPPPPPPPPPPPP"]
-				  
+def getLevel(currLevel):
+	global newX
+	global newY
 	global moveNext
+	global movePrev
+	level = []
+	if currLevel == 1:
+		level = [
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+			"P                                          P",
+			"P                                          e",
+			"P                                          e",
+			"P                        PPPPPPPPP      PPPP",
+			"P                  PP                      P",
+			"P                PP                        P",
+			"P                                          P",
+			"P    PPPPPPPP                              P",
+			"P            PP                            P",
+			"P                          PPPPPPP         P",
+			"P                 PPPPPP                   P",
+			"P                                          P",
+			"P         PPPPPPP                          P",
+			"P       PP                                 P",
+			"P                     PPPPPP               P",
+			"P                                          P",
+			"P   PPPPPPPPPPP                            P",
+			"P                                          P",
+			"P                                          P",
+			"P                 PPPPPPPPPPP              P",
+			"P                            PP            P",
+			"P                              PP          P",
+			"P                                          P",
+			"P                                          P",
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
+		total_level_width  = len(level[0])*16*3
+		total_level_height = len(level)*16*3
+		print(total_level_width)
+		print (total_level_height)
+		if movePrev:
+			newX = total_level_width - 150
+			newY = 164
+		else:
+			newX = total_level_width - 300
+			newY = total_level_height - 80
+		
+	elif currLevel == 2:
+		level = [	
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+			"e                                          P",
+			"e                                          P",
+			"PPPP                                       P",
+			"P                              PP          P",
+			"P         P   PP                           P",
+			"P      PP                             PP   P",
+			"P                                    P     P",
+			"P                    PP                    P",
+			"P                            PP            P",
+			"P                                          P",
+			"P                                          P",
+			"P                               PP         P",
+			"P                                          P",
+			"P                                          P",
+			"P                                     PP   P",
+			"P                                          P",
+			"P                                          P",
+			"P                              PP          P",
+			"P                    PP                    P",
+			"P                                          P",
+			"P               P                          P",
+			"P                                          P",
+			"P        PP                                P",
+			"B                                          P",
+			"B                                          P",
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
+		total_level_width  = len(level[0])*16*3
+		total_level_height = len(level)*16*3
+
+		if movePrev:
+			newX = 100
+			newY = 150
+		else:
+			newX = 100
+			newY = total_level_height - 80
+	elif currLevel == 3:
+		level = [	
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+			"e                                               P",
+			"e                                               P",
+			"PPP                                             P",
+			"P                                      P        P",
+			"P                      PP                       P",
+			"P     P                         PP              P",
+			"P                                        PP     P",
+			"P                PP                             P",
+			"P  P                                            P",
+			"P                                     P         P",
+			"P        PP                                     P",
+			"P                                PP             P",
+			"P                       PP                      P",
+			"P                      P                        P",
+			"P                 P                             P",
+			"P                                               P",
+			"P              P                                P",
+			"P                       P                       P",
+			"P          PP                                   P",
+			"P                              PP               P",
+			"P                  P                            P",
+			"P              PP           P                   P",
+			"P                                               P",
+			"P                                               P",
+			"P                              PP               P",
+			"P                                               P",
+			"P                                               P",
+			"P                                      PPP      P",
+			"P                                               B",
+			"P                                               B",
+			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
+		total_level_width  = len(level[0])*16*3
+		total_level_height = len(level)*16*3
+		print(total_level_width)
+		print (total_level_height)
+		if movePrev:
+			newX = total_level_width - 150
+			newY = total_level_height - 80
+		else:
+			newX = total_level_width - 150
+			newY = total_level_height - 80
+				  
 	moveNext = False
-	currLevel+=1
+	movePrev = False
 	
 	return level
 	
@@ -301,6 +382,9 @@ class Player(Entity):
 	def collide(self, xvel, yvel, platforms):
 		for p in platforms:
 			if pygame.sprite.collide_rect(self, p):
+				if isinstance(p, PreviousBlock):
+					global movePrev
+					movePrev = True
 				if isinstance(p, ExitBlock):
 					#go to next level based on currLevel variable
 					global moveNext
@@ -362,6 +446,10 @@ class ExitBlock(Platform):
 	def __init__(self, x, y):
 		Platform.__init__(self, x, y)
 		self.image.fill(Color("#0033FF"))
-
+		
+class PreviousBlock(Platform):
+	def __init__(self, x, y):
+		Platform.__init__(self, x, y)
+		self.image.fill(Color("#0033FF"))
 if __name__ == "__main__":
 	main()
