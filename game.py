@@ -9,9 +9,10 @@ WIN_HEIGHT = 224*3
 HALF_WIDTH = int(WIN_WIDTH / 2)
 HALF_HEIGHT = int(WIN_HEIGHT / 2)
 
-#currLevel = 1
 moveNext = False
 movePrev = False
+done = False
+
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT)
 DEPTH = 32
 FLAGS = 0
@@ -48,7 +49,7 @@ knightjump1 = character
 
 def main():
 	timer = pygame.time.Clock()
-	currLevel = 3
+	currLevel = 1
 	up = down = left = right = running = False
 	platforms = []
 	#bg = Background('bg1.png', 0, 0)
@@ -130,15 +131,14 @@ def main():
 			y=0
 			if moveNext:
 				currLevel = currLevel + 1
-				print (currLevel)
 			if movePrev:
 				currLevel = currLevel - 1			
-				print (currLevel)
-			#print ("currLevel")
-			#print (currLevel)
 			
 			platforms=[]
 			level = getLevel(currLevel)
+			
+			if done:
+				break
 			entities = pygame.sprite.Group()
 		
 			for row in level:
@@ -164,10 +164,23 @@ def main():
 			camera = Camera(complex_camera, total_level_width, total_level_height)
 			player = Player(newX, newY)
 			entities.add(player)
-			sleep(.5)
+			sleep(.2)
 		for e in entities:
 			screen.blit(e.image, camera.apply(e))
 		pygame.display.update()
+	
+	
+	font = pygame.font.Font(None, 50)
+	BLACK = (0,0,0)
+	text = font.render("Game Over", True, BLACK)
+	text_rect = text.get_rect()
+	text_x = WIN_WIDTH / 2 - text_rect.width / 2
+	text_y = WIN_HEIGHT / 2 - text_rect.height / 2
+
+	screen.blit(text, [text_x, text_y])
+	pygame.display.update()
+	sleep(2)
+	
 class Camera(object):
 	def __init__(self, camera_func, width, height):
 		self.camera_func = camera_func
@@ -200,6 +213,7 @@ def getLevel(currLevel):
 	global newY
 	global moveNext
 	global movePrev
+	global done
 	level = []
 	if currLevel == 1:
 		level = [
@@ -231,8 +245,7 @@ def getLevel(currLevel):
 			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
 		total_level_width  = len(level[0])*16*3
 		total_level_height = len(level)*16*3
-		print(total_level_width)
-		print (total_level_height)
+		
 		if movePrev:
 			newX = total_level_width - 150
 			newY = 164
@@ -314,8 +327,7 @@ def getLevel(currLevel):
 			"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
 		total_level_width  = len(level[0])*16*3
 		total_level_height = len(level)*16*3
-		print(total_level_width)
-		print (total_level_height)
+		
 		if movePrev:
 			newX = total_level_width - 150
 			newY = total_level_height - 80
@@ -323,6 +335,14 @@ def getLevel(currLevel):
 			newX = total_level_width - 150
 			newY = total_level_height - 80
 				  
+	elif currLevel == 4:
+		level = ["PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+				 "                                                 ",
+				 "                                                 ",
+				 "                                                 ",
+				 "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",]
+		done = True
+	
 	moveNext = False
 	movePrev = False
 	
@@ -392,10 +412,8 @@ class Player(Entity):
 					#pygame.event.post(pygame.event.Event(QUIT))
 				if xvel > 0:
 					self.rect.right = p.rect.left
-					print("collide right")
 				if xvel < 0:
 					self.rect.left = p.rect.right
-					print("collide left")
 				if yvel > 0:
 					self.rect.bottom = p.rect.top
 					self.onGround = True
