@@ -443,6 +443,37 @@ class Player(Entity):
 	def updatecharacter(self, ansurf):
 		if not self.faceright: ansurf = pygame.transform.flip(ansurf,True,False)
 		self.image = ansurf
+		
+###############################################		
+#Added by Anette, just testing out some stuff
+###############################################
+
+class Item(Entity):
+    def __init__(self, x, y, itemType, image, sound=None):
+        #pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(image).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x=x
+        self.rect.y=y
+        self.itemType = itemType
+        self.loadSound(sound)
+
+    def loadSound(self, sound):
+        if sound != None:
+            self.sound = pygame.mixer.Sound(sound)
+        else:
+            self.sound = None
+
+    def playSound(self):
+        if self.sound != None:
+            self.sound.play()
+
+    def pickUp(self):
+        self.playSound()
+        return self.itemType
+
+#####################################################
+#####################################################
 
 class Platform(Entity):
 	def __init__(self, x, y):
